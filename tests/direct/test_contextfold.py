@@ -72,3 +72,30 @@ def test_uncompressed_proposal_refused(direct_vm, direct_deploy):
             "The purchasing agent must obtain Security approval before sending any production customer data to an external provider.",
             "The emergency exception allows processing without Finance approval but does not waive Security approval.",
         ], [0, 1])
+
+
+def test_validator_rejects_forged_leader_pass(direct_vm, direct_deploy):
+    """A leader result cannot turn a validator FAIL into an ACCEPTED fold."""
+    ic, sid = prepared(direct_vm, direct_deploy)
+    direct_vm.mock_llm("CONTEXTFOLD / SEMANTIC CONSERVATION AUDIT", '{"equivalent":[false,false]}')
+    fid = ic.propose_fold(sid, [
+        "Security approval is mandatory before exporting production customer data.",
+        "Emergency processing may bypass Finance approval, never Security approval.",
+    ], [0, 1])
+    ic.resolve_fold(fid)
+    assert ic.get_fold(fid)["status"] == 2
+    assert direct_vm.run_validator(leader_result={"equivalent": [True, True]}) is False
+
+
+def test_owner_isolation_blocks_foreign_record_and_fold_writes(
+    direct_vm, direct_deploy, direct_bob
+):
+    ic, sid = prepared(direct_vm, direct_deploy)
+    with direct_vm.prank(direct_bob):
+        with direct_vm.expect_revert("owner only"):
+            ic.append_record(sid, 6, "A foreign writer must not alter this space.")
+        with direct_vm.expect_revert("owner only"):
+            ic.propose_fold(sid, [
+                "Security approval is mandatory before exporting production customer data.",
+                "Emergency processing may bypass Finance approval, never Security approval.",
+            ], [0, 1])

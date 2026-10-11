@@ -5,8 +5,8 @@ import { spawnSync } from 'node:child_process';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const installed = resolve(root, 'node_modules/genlayer/package.json');
-const wrapper = resolve(root, `node_modules/.bin/genlayer${process.platform === 'win32' ? '.cmd' : ''}`);
-if (!existsSync(installed) || !existsSync(wrapper)) {
+const entrypoint = resolve(root, 'node_modules/genlayer/dist/index.js');
+if (!existsSync(installed) || !existsSync(entrypoint)) {
   console.error('ERROR: local genlayer CLI missing. Run npm install in this repository.');
   process.exit(2);
 }
@@ -31,10 +31,13 @@ if (args.includes('--rpc')) {
     process.exit(2);
   }
 }
-const result = spawnSync(wrapper, args, {
+// Invoke the package entrypoint with the current Node executable instead of
+// going through the platform shim. On Windows the generated .cmd shim can
+// leave a spawned Commander process attached to the parent stdio and make
+// `npm run gl -- --version` appear to hang.
+const result = spawnSync(process.execPath, [entrypoint, ...args], {
   cwd: root,
   stdio: 'inherit',
-  shell: process.platform === 'win32',
   env: process.env,
 });
 if (result.error) {

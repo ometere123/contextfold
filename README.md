@@ -97,7 +97,7 @@ python -m pip install -r requirements-test.txt
 python -m pytest tests/direct -q    # requires GenVM Direct Mode runtime
 ```
 
-The local unit suite includes a simulated SDK state-machine harness; **that is not equivalent to GenVM consensus tests**. The real Direct Mode suite must run in a properly provisioned environment. CI covers static checks and unit tests, not a fake badge for unavailable GenVM or remote finality.
+The local unit suite includes a simulated SDK state-machine harness; **that is not equivalent to GenVM consensus tests**. The real Direct Mode suite runs in CI with the pinned GenVM runner bundle, alongside GenVM lint/schema validation. Neither test mode is a substitute for remote finality.
 
 ## Deploy (requires actual chain verification)
 
