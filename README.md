@@ -52,7 +52,7 @@ A detected omission, invented exception, broadened permission, or disagreement m
 - `MemoryRecord`: owner-authorized append, kind, text, hash, revision; never rewritten or deleted.
 - `Fold`: frozen source texts/kinds/lineage refs, source hash, proposed claims/group mapping, parent fold, version, status and certificate hash.
 - `F_PENDING=0`, `F_ACCEPTED=1`, `F_REJECTED=2`, `F_STALE=3`, `F_CANCELLED=4`.
-- Up to 160 source records per space, a frontier of up to 16 source clauses and up to 16 folded claims; 1,400 chars per record/claim. Larger histories are supported through successive folds, not one unbounded prompt.
+- Up to 160 source records per space, a frontier of up to 16 source clauses and up to 15 folded claims; 1,400 chars per record/claim. Larger histories are supported through successive folds, not one unbounded prompt.
 - A later append changes the revision and immediately makes `is_current()` false for older certificates. Competing fold proposals on the same parent are invalidated when the first is accepted. Source/frontier hash is checked again before a pending fold resolves.
 - A current capsule returns only the approved claims, never rejected candidate text; full inputs remain queryable through historical reads.
 

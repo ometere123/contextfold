@@ -1,0 +1,11 @@
+node_modules/
+.pytest_cache/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+*.zip
+artifacts/
+keypair.json
+*private*key*
