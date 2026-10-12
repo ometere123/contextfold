@@ -50,7 +50,7 @@ def main() -> int:
         raise RuntimeError("local genlayer CLI must be 0.39.1")
     check_chain_id()  # fail closed; never deploy if RPC cannot identify the chain
     local_cli("--version")
-    local_cli("account", "show")
+    local_cli("account", "show", "--rpc", RPC)
     print("Deploying only to StudioNet (61999)...")
     local_cli("deploy", "--contract", str(CONTRACT), "--rpc", RPC)
     print("Record transaction hash, FINALIZED receipt, contract address, and source parity in docs/DEPLOYMENT.md")

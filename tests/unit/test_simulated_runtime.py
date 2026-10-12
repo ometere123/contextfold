@@ -153,6 +153,19 @@ def test_folding_prior_capsule_and_new_delta():
     assert not ic.is_current(sid, f1, ic.get_fold(f1)["certificate_hash"])
 
 
+def test_invalid_parent_lineage_fails_closed():
+    ic, m, gl, sid = fixture()
+    gl.nondet = types.SimpleNamespace(exec_prompt=lambda *a, **k: {"equivalent": [False, False]})
+    rejected = ic.propose_fold(sid, candidate(), [0, 1])
+    ic.resolve_fold(rejected)
+    assert ic.get_fold(rejected)["status"] == m.F_REJECTED
+
+    space = ic.spaces.get(sid)
+    space.latest_fold_id = rejected
+    with pytest.raises(m.gl.vm.UserError, match="invalid parent fold"):
+        ic.propose_fold(sid, candidate(), [0, 1])
+
+
 def test_nonowner_cannot_write_or_cancel():
     ic, m, gl, sid = fixture()
     gl.message.sender_address = "attacker"

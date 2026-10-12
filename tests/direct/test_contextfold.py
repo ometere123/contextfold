@@ -87,6 +87,112 @@ def test_validator_rejects_forged_leader_pass(direct_vm, direct_deploy):
     assert direct_vm.run_validator(leader_result={"equivalent": [True, True]}) is False
 
 
+def test_omitted_exception_is_rejected(direct_vm, direct_deploy):
+    ic, sid = prepared(direct_vm, direct_deploy)
+    direct_vm.mock_llm(
+        "CONTEXTFOLD / SEMANTIC CONSERVATION AUDIT",
+        '{"equivalent":[true,false]}',
+    )
+    fid = ic.propose_fold(sid, [
+        "Security approval is mandatory before exporting production customer data.",
+        "Emergency processing may bypass Finance approval.",
+    ], [0, 1])
+    ic.resolve_fold(fid)
+    assert ic.get_fold(fid)["status"] == 2
+    assert direct_vm.run_validator() is True
+
+
+def test_malformed_verdicts_cannot_activate_a_fold(direct_vm, direct_deploy):
+    ic, sid = prepared(direct_vm, direct_deploy)
+    direct_vm.mock_llm(
+        "CONTEXTFOLD / SEMANTIC CONSERVATION AUDIT",
+        '{"equivalent":["true",true]}',
+    )
+    fid = ic.propose_fold(sid, [
+        "Security approval is mandatory before exporting production customer data.",
+        "Emergency processing may bypass Finance approval, never Security approval.",
+    ], [0, 1])
+    ic.resolve_fold(fid)
+    assert ic.get_fold(fid)["status"] == 2
+    assert direct_vm.run_validator() is True
+
+
+def test_competing_fold_is_stale_after_parent_activation(direct_vm, direct_deploy):
+    ic, sid = prepared(direct_vm, direct_deploy)
+    direct_vm.mock_llm(
+        "CONTEXTFOLD / SEMANTIC CONSERVATION AUDIT",
+        '{"equivalent":[true,true]}',
+    )
+    claims = [
+        "Security approval is mandatory before exporting production customer data.",
+        "Emergency processing may bypass Finance approval, never Security approval.",
+    ]
+    first = ic.propose_fold(sid, claims, [0, 1])
+    second = ic.propose_fold(sid, claims, [0, 1])
+    ic.resolve_fold(first)
+    ic.resolve_fold(second)
+    assert ic.get_fold(first)["status"] == 1
+    assert ic.get_fold(second)["status"] == 3
+    assert ic.get_space(sid)["latest_fold_id"] == first
+
+
+def test_relabelled_claim_order_keeps_source_lineage_and_kinds(direct_vm, direct_deploy):
+    ic, sid = prepared(direct_vm, direct_deploy)
+    direct_vm.mock_llm(
+        "CONTEXTFOLD / SEMANTIC CONSERVATION AUDIT",
+        '{"equivalent":[true,true]}',
+    )
+    fid = ic.propose_fold(sid, [
+        "Emergency processing may bypass Finance approval, never Security approval.",
+        "Security approval is mandatory before exporting production customer data.",
+    ], [1, 0])
+    proposed = ic.get_fold(fid)
+    assert proposed["mapping"] == [1, 0]
+    assert proposed["claim_kinds"] == [4, 1]
+    assert proposed["source_refs"] == ["record:1", "record:2"]
+    ic.resolve_fold(fid)
+    assert ic.get_fold(fid)["status"] == 1
+
+
+def test_frontier_bound_requires_a_fold_before_more_records(direct_vm, direct_deploy):
+    ic, sid = prepared(direct_vm, direct_deploy)
+    for index in range(14):
+        ic.append_record(sid, 6, f"Additional bounded fact number {index}.")
+    assert ic.get_space(sid)["record_count"] == 16
+    with direct_vm.expect_revert("fold the current frontier"):
+        ic.append_record(sid, 6, "This seventeenth source must be rejected.")
+
+
+def test_re_fold_preserves_parent_lineage_and_invalidates_parent(direct_vm, direct_deploy):
+    ic, sid = prepared(direct_vm, direct_deploy)
+    direct_vm.mock_llm(
+        "CONTEXTFOLD / SEMANTIC CONSERVATION AUDIT",
+        '{"equivalent":[true,true]}',
+    )
+    first = ic.propose_fold(sid, [
+        "Security approval is mandatory before exporting production customer data.",
+        "Emergency processing may bypass Finance approval, never Security approval.",
+    ], [0, 1])
+    ic.resolve_fold(first)
+    first_hash = ic.get_fold(first)["certificate_hash"]
+    ic.append_record(sid, 6, "The release date remains unresolved and is not final.")
+    direct_vm.clear_mocks()
+    direct_vm.mock_llm(
+        "CONTEXTFOLD / SEMANTIC CONSERVATION AUDIT",
+        '{"equivalent":[true,true,true]}',
+    )
+    second = ic.propose_fold(sid, [
+        "Security approval required before exporting production data.",
+        "Emergency bypasses Finance, never Security, for outside data.",
+        "The release date is unresolved and not final.",
+    ], [0, 1, 2])
+    assert ic.get_fold(second)["parent_fold_id"] == first
+    assert ic.get_fold(second)["source_refs"][0] == f"fold:{first}:0"
+    ic.resolve_fold(second)
+    assert ic.get_fold(second)["status"] == 1
+    assert ic.is_current(sid, first, first_hash) is False
+
+
 def test_owner_isolation_blocks_foreign_record_and_fold_writes(
     direct_vm, direct_deploy, direct_bob
 ):
