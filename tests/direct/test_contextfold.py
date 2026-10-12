@@ -102,6 +102,38 @@ def test_omitted_exception_is_rejected(direct_vm, direct_deploy):
     assert direct_vm.run_validator() is True
 
 
+def test_certificate_replay_fails_after_frontier_changes(direct_vm, direct_deploy):
+    ic, sid = prepared(direct_vm, direct_deploy)
+    direct_vm.mock_llm("CONTEXTFOLD / SEMANTIC CONSERVATION AUDIT", accepted_result())
+    fid = ic.propose_fold(sid, [
+        "Security approval is mandatory before exporting production customer data.",
+        "Emergency processing may bypass Finance approval, never Security approval.",
+    ], [0, 1])
+    ic.resolve_fold(fid)
+    certificate = ic.get_fold(fid)["certificate_hash"]
+    assert ic.is_current(sid, fid, certificate) is True
+    ic.append_record(sid, 6, "The release date remains unresolved pending review.")
+    assert ic.is_current(sid, fid, certificate) is False
+    assert ic.is_current(sid, fid, "") is False
+
+
+def test_new_space_zero_fold_is_current_false_not_a_revert(direct_vm, direct_deploy):
+    ic = direct_deploy(CONTRACT)
+    sid = ic.create_space("Empty")
+    assert ic.is_current(sid, 0, "not-a-certificate") is False
+
+
+def test_compression_boundary_uses_utf8_bytes_not_codepoints(direct_vm, direct_deploy):
+    ic = direct_deploy(CONTRACT)
+    sid = ic.create_space("Unicode")
+    for text in ("a", "b", "c"):
+        ic.append_record(sid, 6, text)
+    # One code point is shorter than three source code points, but the UTF-8
+    # payload for 😀 is four bytes and therefore is not compression.
+    with direct_vm.expect_revert("proposal does not shorten"):
+        ic.propose_fold(sid, ["😀"], [0, 0, 0])
+
+
 def test_malformed_verdicts_cannot_activate_a_fold(direct_vm, direct_deploy):
     ic, sid = prepared(direct_vm, direct_deploy)
     direct_vm.mock_llm(

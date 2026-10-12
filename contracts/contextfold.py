@@ -113,6 +113,11 @@ def compact_text(value: str, limit: int) -> str:
     return value
 
 
+def utf8_size(value: str) -> int:
+    """Return the deterministic UTF-8 byte size used for compression checks."""
+    return len(value.encode("utf-8"))
+
+
 def digest(value) -> str:
     # JSON canonicalisation is deterministic across leader/validators.
     payload = json.dumps(value, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
@@ -314,8 +319,11 @@ class ContextFold(gl.Contract):
             raise gl.vm.UserError(f"{ERR}: need at least two frontier items")
         clean_claims = [compact_text(c, MAX_FOLDED_TEXT) for c in claims]
         indices = checked_map(mapping, kinds, len(clean_claims))
-        # No fake compression: bytes of claim text must actually decrease.
-        if sum(len(c) for c in clean_claims) >= sum(len(s) for s in texts):
+        # No fake compression: the UTF-8 byte payload must actually decrease.
+        # Length limits above remain character-count limits; this comparison is
+        # deliberately byte-based because the serialized contract payload is
+        # UTF-8 and Unicode code points are not uniform-width.
+        if sum(utf8_size(c) for c in clean_claims) >= sum(utf8_size(s) for s in texts):
             raise gl.vm.UserError(f"{ERR}: proposal does not shorten the active memory")
         fid = self.next_fold_id
         self.next_fold_id = u256(int(fid) + 1)
@@ -469,6 +477,8 @@ class ContextFold(gl.Contract):
     def is_current(self, space_id: u256, fold_id: u256, expected_hash: str) -> bool:
         space = self._space(space_id)
         if not expected_hash:
+            return False
+        if int(fold_id) == 0:
             return False
         if int(space.latest_fold_id) != int(fold_id):
             return False

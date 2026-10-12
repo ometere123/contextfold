@@ -12,7 +12,7 @@ import pytest
 
 SOURCE = Path(__file__).resolve().parents[2] / "contracts" / "contextfold.py"
 TREE = ast.parse(SOURCE.read_text(encoding="utf-8"))
-NAMES = ["audit_prompt", "checked_map", "parse_verdicts", "valid_kind"]
+NAMES = ["audit_prompt", "checked_map", "parse_verdicts", "valid_kind", "utf8_size"]
 
 
 class UserError(Exception):
@@ -84,6 +84,13 @@ def test_valid_kind_excludes_booleans_and_unknowns():
         assert kind(v) is True
     for v in [0, 7, -1, True, False, "1", 1.0]:
         assert kind(v) is False
+
+
+def test_utf8_size_is_explicitly_byte_based():
+    size = load_pure()["utf8_size"]
+    assert size("A") == 1
+    assert size("é") == 2
+    assert size("😀") == 4
 
 
 def test_no_cross_network_references_in_deployment_files():
