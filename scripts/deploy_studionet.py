@@ -19,7 +19,14 @@ CONTRACT = ROOT / "contracts/contextfold.py"
 
 def check_chain_id() -> None:
     payload = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "eth_chainId", "params": []}).encode()
-    req = urllib.request.Request(RPC, data=payload, headers={"Content-Type": "application/json"})
+    # StudioNet's Cloudflare edge rejects urllib's default ``Python-urllib``
+    # user agent even though the JSON-RPC endpoint is otherwise available.
+    # Keep the check fail-closed while identifying this as a normal client.
+    req = urllib.request.Request(
+        RPC,
+        data=payload,
+        headers={"Content-Type": "application/json", "User-Agent": "contextfold-deployer/1.0"},
+    )
     with urllib.request.urlopen(req, timeout=20) as response:
         value = json.load(response)
     if "error" in value:
