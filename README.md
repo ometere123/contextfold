@@ -109,8 +109,14 @@ The local unit suite includes a simulated SDK state-machine harness; **that is n
 
 Full handoff/proof checklist: [docs/AGENT_HANDOFF.md](docs/AGENT_HANDOFF.md). Threat model: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
 
-## Honest status
+## Verified status
 
-This source package has passed offline syntax/preflight and network-free unit simulation. **No GenVM lint, Direct Mode run, StudioNet deployment, consensus receipt or source-parity claim is asserted in this README until separately executed and recorded.**
+The current source is deployed at
+`0xae293Cb699FF2c09E1D6281325157647900e5601` on StudioNet `61999`.
+Deployment, source parity, finalized live lifecycle receipts, and limitations
+are recorded in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Current regression
+evidence is 15 unit tests, 16 Direct Mode tests, and 3/3 AST lint checks.
+Extended local semantic linter commands did not complete on Windows; that is
+explicitly not claimed as a pass.
 
 MIT licensed. Built for the reusable **Intelligent Contracts** category, not Projects.

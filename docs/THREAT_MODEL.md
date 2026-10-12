@@ -21,6 +21,9 @@
 | Propose using stale history | source root, base revision and parent fold fixed; rechecked before activation |
 | Race two proposals | only first accepted against a given latest parent can activate; second is STALE |
 | Reuse accepted certificate after new record | revision mismatch causes `is_current == False` |
+| Query fold ID zero on a new space | `is_current()` fails closed before storage dereference |
+| Unicode byte/character confusion | compression uses deterministic UTF-8 byte size; text bounds remain explicit character limits |
+| Replay an old certificate after a newer generation | latest-fold identity, revision and certificate hash must all match |
 | Unauthorized editing | owner-only append/propose/cancel; no mutation of old records |
 | Infinite model work | 16-source/claim frontier and per-text limits |
 | Silent loss of audit trail | original records, frozen sources, mappings and all fold attempts remain queryable |
@@ -35,6 +38,7 @@
 * No independent audit of original text, web truth, or source availability.
 * No live GEN economics or external authority over downstream agents; a consumer must explicitly pin a certificate using `is_current` and enforce its own actions.
 * No automated recursive multi-level graph proof beyond parent certificate lineage; every new fold is independently audited against its immediate accepted parent claim set and new append-only records.
+* Compression limits are character-count limits, while the strict shortening check is UTF-8 byte-based; this distinction is intentional and tested.
 
 ## Mandatory adversarial tests before a score claim
 

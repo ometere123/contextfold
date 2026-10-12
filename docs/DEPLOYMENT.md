@@ -1,82 +1,109 @@
 # StudioNet deployment evidence
 
-This record contains observed evidence for the ContextFold deployment on GenLayer
-StudioNet only.
+This record describes the current ContextFold deployment and observed StudioNet
+evidence. Historical deployments are retained only as historical records.
+
+## Current deployment
 
 | Item | Observed result |
 |---|---|
 | Network | StudioNet, chain ID `61999` (`0xF22F`) |
 | RPC | `https://studio.genlayer.com/api` |
-| Local CLI | `genlayer@0.39.1` (`npm run gl -- --version`) |
-| Contract | `0xc6359cDc332F78D5f06BFD2e8212e9E8E0477653` |
-| Deployment transaction | `0xab7eb386ffd82faf3ae0e6f5659f9cd875e777504e52151598d670501d9e8a05` |
-| Deployment receipt | `FINALIZED`, `MAJORITY_AGREE`, leader/validator execution `SUCCESS`, return `null` |
-| Contract explorer | [StudioNet contract](https://explorer-studio.genlayer.com/address/0xc6359cDc332F78D5f06BFD2e8212e9E8E0477653) |
-| Local source SHA-256 | `38e83573f0786b398618efd900065a1434db3580f4f31af1992492797d8ede88` (UTF-8, CRLF-normalized) |
-| Deployed code SHA-256 | `71a39d617a1468d2bd18fd290e59209001b0ff95256d5a9c31b3df14e82e88c2` (CLI-returned source, CRLF-normalized) |
-| Source parity | Exact substantive parity confirmed; the RPC-returned source has two additional trailing newlines. Shared-content SHA-256 after removing trailing newlines: `60ff28f960790157a3b74298507640aee948a27fdaab861b445ca48d7b02c8d3`. |
-| GenVM AST lint | `3/3` passed for `contracts/contextfold.py` (`genvm-lint lint ... --json`) |
-| GenVM semantic validation | Not verified: `genvm-lint validate`, `check` and `schema` did not complete in this Windows environment. |
-| Unit suite | `14 passed` |
-| Direct Mode suite | `13 passed` |
-| Package lock | Existing `package-lock.json` was present; `npm install --no-audit --no-fund` produced no lockfile diff. |
+| Local CLI | repository-local `genlayer@0.39.1` |
+| Contract | `0xae293Cb699FF2c09E1D6281325157647900e5601` |
+| Deployment transaction | `0x7b2edc209bd0553e0b99381334ee99f6360fef58f9dd9f4932809765cf398677` |
+| Deployment receipt | `FINALIZED / MAJORITY_AGREE / SUCCESS`; five validator votes agreed |
+| Explorer | https://explorer-studio.genlayer.com/address/0xae293Cb699FF2c09E1D6281325157647900e5601 |
+| Local source SHA-256 | `c281bf8e233cc99930bd3787113a94d3f7f256f28f641cd339f97f1984b24ca0` |
+| Deployed source SHA-256 | `c281bf8e233cc99930bd3787113a94d3f7f256f28f641cd339f97f1984b24ca0` |
+| Source parity | Exact after CRLF normalization and removal of the CLI wrapper's trailing newline |
 
-## Live lifecycle evidence
+## Verification
 
-All writes below were submitted with the repository-local CLI/account and then
-polled to `FINALIZED`. Successful writes returned `MAJORITY_AGREE`; readbacks
-were performed with finalized contract calls.
+| Gate | Result |
+|---|---|
+| Preflight | Passed for StudioNet `61999` and CLI `0.39.1` |
+| Unit suite | `15 passed` |
+| Direct Mode suite | `16 passed` |
+| GenVM AST lint | `3/3` passed |
+| Extended semantic linter locally | Not completed; the pinned Windows linter process timed out. This is not claimed as a semantic-validation pass. |
+| CI | Use the GitHub Actions run attached to the final commit; no local npm `verify` script exists. |
 
-### Accepted and multi-generation folds
+## Final-deployment live lifecycle evidence
 
-Space `3` (`Duplicate-fact-lifecycle`) demonstrates an accepted fold followed by
-a second accepted generation:
+Every transaction below was explicitly polled to `FINALIZED`. Successful
+transactions returned `MAJORITY_AGREE`; readbacks are from the final address.
 
-| Step | Transaction | Final readback |
+### Accepted obligation-plus-exception compression
+
+Space `2` contains a meaningful obligation and exception:
+
+| Step | Transaction | Readback |
 |---|---|---|
-| Create space | `0xf9a72a556a5a06d37be4d3115b5266ba7b23506feebf60d9d0477ee1947f6400` | Space `3` created |
-| Append duplicate fact 1 | `0x723d38f2cf3921aeec4c90d9172622fa10059f954bc4a09d8da1489d2449b686` | Record `5`, finalized success |
-| Append duplicate fact 2 | `0xeb98ab5f4f66dc01bbfbbc44c0c55c4eb649b7e378eff1f336a9236995bef3a6` | Record `6`, finalized success |
-| Propose fold 3 | `0xf65806fb9b69965dd339f3f886ed90a5cba222d1c08e0a083ffa988636a78ff7` | Fold `3` proposed, finalized success |
-| Resolve fold 3 | `0x62af1826f34a167ec3b8bf8dcc3791ecde059eb79db8aa2bc4754d31355278bc` | Fold `3`: `status=1` (`F_ACCEPTED`), certificate `1a1462bf7bb4ec6c9ab4488e3155af770181fbbc1aad305b55130f9d396eb0c6`, `current=true` |
-| Append duplicate fact 3 | `0x828b273f2e0cdc91c0e9ac42251f74dd0aced863f0d97c382cabce050b65eaa8` | Record `7`, finalized success |
-| Propose fold 4 | `0xea0c61c9c5e0fb0a558ae18cf405f7e49b04309fee922a1d1a64e94b50e6e45a` | Fold `4` proposed, finalized success |
-| Resolve fold 4 | `0x0ba88ec3fb60807cdf84a0fffb3e0e37485a231c63ea3963564ee2c033b01a93` | Fold `4`: `status=1` (`F_ACCEPTED`), parent `3`, certificate `5f19cde05d25a473dd5b786eca860cea502337ccc12ba030a2974c6db5368cc3`, `current=true` |
+| Create space | `0x47d6ae4662fd3073a1cdca20666fd74f587a954b80f008ca133d19fdeae25058` | Space `2` |
+| Append obligation | `0x207d65cfb7e35e5953ec55db6928f8b3880814c35917e3b001da3b52b7f7f01a` | Record `3`, finalized success |
+| Append exception | `0x5b09cd863265a63a37d25c0eba444da7ace27c83683e727bdebd0ce887290aed` | Record `4`, finalized success |
+| Propose fold | `0x1b13d4805e503d15a10a26b73e55932c12204e1aaf443c87e6d4d04899148922` | Fold `2` |
+| Resolve fold | `0x3bbc80b1312de6439dcf92e8b7a6cceca6f338110a4d0756538e1503a852ac1c` | `FINALIZED / MAJORITY_AGREE / SUCCESS`, `equivalent=[true,true]` |
 
-### Rejected folds
+Final `current_capsule(2)` readback: `current=true`, `fold_id=2`, kinds
+`[OBLIGATION, EXCEPTION]`, certificate
+`dfeabfe05976bec1a1702b385704456705af9d000f99906f380e74f9d2fe9071`.
 
-Spaces `1` and `2` contain over-compressed proposals. Their resolution
-transactions finalized with successful GenVM execution and validator agreement,
-while the contract recorded `F_REJECTED` (`status=2`) because semantic
-conservation was not established:
+### Rejected semantic candidates
 
-| Space / fold | Proposal | Resolution | Readback |
+The following finalized resolutions rejected materially unsafe proposals. The
+negative matrix contains omitted approval, a negation, a missing deadline,
+invented permission, exception loss, and converting unresolved uncertainty to
+final:
+
+| Matrix | Proposal | Resolution | Readback |
 |---|---|---|---|
-| Space `1`, fold `1` | `0xde9e31d911e1e5716e0d1dd612c3c807491454a81d4be4eb25660fd6e9af3318` | `0x147c4f48f80fe72c0f094a228ab405e41d2b7cb4600ba91948b563996a9f3643` | `status=2`, reason `semantic conservation not independently established` |
-| Space `2`, fold `2` | `0xa68f5a023d5ca156fea460eb3a484b108d49cb6671ab50f9b28762e1d60c69f6` | `0x4ae556fca4e2f78b947ff51235a2e78194830db39a31f6402d69617bd77e9759` | `status=2`, reason `semantic conservation not independently established` |
+| Initial obligation/exception loss | `0x466f83a1192c4e59af4405cd2e76a00fd343a9a7c47858392ad6e2f79988188a` | `0xa8d3a7bb2223550776c5cda33b10682a8395e45ecf602ec235b0bd8f804e2dbd` | `FINALIZED / MAJORITY_AGREE / SUCCESS`; `equivalent=[false,true]`; fold `1` `F_REJECTED` |
+| Six-case negative matrix | `0x792c2378192af212a158bad841dcc99ff2337dd0f2119cca89794ed8a8bbac7c` | `0x4086e7261246efeecdf399053029f3f3d86d72856985ce562c36674e6fc89a57` | `FINALIZED / MAJORITY_AGREE / SUCCESS`; fold `3` `F_REJECTED` |
 
-### Stale proposal
+The six source appends were finalized in transactions:
+`0xba644f8093c3d6009ae33a3a896c5f33b667c2ca031d2bda2fdd84dc56d1fa6c`,
+`0x4e9d72accdc9aba3f8e663da520fc6ee76db78ac3433d9b51b45d86b9e5cf5f3`,
+`0x32325ba66d7479739b2a8557c5ecc861a0656df91ec148d7f0e7a298a0555c24`,
+`0x8450750db03705680a86836aadecf9852c19547c88e421b2752c75bb088774d3`,
+`0xb2193e8b874435d1586295b7b1e2225be0f428c2621a2d3a7e4b7421f802b480`, and
+`0x1b0b9d6eb1e809a2f7446d974c9b0420710a9b3ae1d7e89ac490aca7dcd290a5`.
 
-Space `3`, fold `5` was proposed against a finalized frontier, then a new
-record was appended before resolution. Its finalized resolution safely marked
-the proposal stale without activating it:
+### Multi-generation and stale protection
 
-| Step | Transaction | Final readback |
+Space `4` demonstrates accepted compression, competing-fold invalidation, and
+an accepted second generation:
+
+| Step | Transaction | Readback |
 |---|---|---|
-| Append records 8 and 9 | `0x258011d7f2483d636228a57fc8e05d7a00e791a68739cf4328fcc2581fc56498`, `0x2aab498b404c7ae02a9ae5a1c794a98238f569081eafbc10ace1116092a08902` | Both finalized success |
-| Propose fold 5 | `0xb222c932b65739f530d35dc59ee124835f8a1a5cae8ffeca74e1ef940fa6743c` | Fold `5` pending proposal finalized success |
-| Advance frontier | `0xd69279743b059781e3845aefad869ecb1e12a5c7b8f8b7a214c44d152970dcfc` | Record `10`, finalized success |
-| Resolve fold 5 | `0xb631b5da55112b9655586feb7dee6436b1b843b43aa09d6692cd23ee988cebd5` | Fold `5`: `status=3` (`F_STALE`), reason `frontier advanced; proposal cannot be activated`; current capsule remains fold `4` |
+| Create space | `0x09bc6e01d472963c550f75f7faf501cc8c529ae77251b5109e1e5eee0c299c95` | Space `4` |
+| Append duplicate facts | `0xc9a7fcebccff8ac63938a6f7cf4ab10589e262a3f31709dc8cbf15a5a1868eb3`, `0xb23f18ee4373ced52005393a63c00d41996b70b6bcfb10d0e4e06639ed97ba9b` | Records `12`, `13` |
+| Competing proposals | `0xa433a474c1ad52d92631d54822a734611f1afdac3b574a4c55973e9d7a3036ee`, `0x6e4939091485086a344829ebf1b2dd6d4f1df6779e74fa39ae46143bbe93fe06` | Folds `7`, `8` |
+| Resolve fold `7` | `0x78c2cf85641734764fa6f51314ff761693c50a9eecb55e53c9b816c931c41d37` | Fold `7` `F_ACCEPTED`, certificate `5610baf8570242ef49f15505e36ecd37d693b6f2feded6ef5ef9ac84f6ec1e67` |
+| Resolve fold `8` | `0xfb47356ec1ea51703292639b1fd9ab10247c4024e4c4894feb376e894455d2b2` | Fold `8` `F_STALE`, `frontier advanced` |
+| Append next-generation fact | `0x6d972c798e8eeae6086e48c773e2cc5e83dd6c8a3f6b1fecd2da5bc2348e11a7` | Record `14` |
+| Propose/resolve fold `9` | `0x8954461b0696a63dba908428826919b96a15254fa8707e67127897bfd48775f5`, `0x0cdc4bc300268a08a568d25ebfa458fa9de783febfd5e9acc7ce22545b1b3417` | Fold `9` `F_ACCEPTED`, parent `7`, certificate `a70fdb37bfdff95ce9acf61b5a7a323a17a59941e4e8f2dd82735c68bf6adabb` |
 
-## Failed deployment attempt
+Final readbacks: `current_capsule(4).current=true`, `fold_id=9`,
+`is_current(4,9,<certificate>)=true`, and `is_current(4,0,<certificate>)=false`.
 
-The first deployment attempt is retained as a failure record, not deployment
-evidence. Transaction
+## Direct Mode adversarial coverage
+
+The `16` Direct Mode tests cover dishonest leader vectors, malformed verdicts,
+omitted exceptions, mixed kinds, stale proposals, competing folds, owner
+isolation, invalid parent lineage, certificate replay after a frontier change,
+zero-fold reads, UTF-8 compression boundaries, and parent-preserving
+re-folding. Direct Mode is local evidence, not a substitute for the live
+receipts above.
+
+## Historical deployment
+
+The prior deployment `0xc6359cDc332F78D5f06BFD2e8212e9E8E0477653` and its
+transaction `0xab7eb386ffd82faf3ae0e6f5659f9cd875e777504e52151598d670501d9e8a05`
+are superseded historical evidence. They are not evidence for the current
+address.
+
+The first attempted deployment transaction
 `0xde3e6e3ae7bde190862c220e0fab9275ee93ebee0b43a7388a4bfadb60256a9b`
-finalized with `MAJORITY_AGREE` but leader/validator execution `ERROR` and
-`invalid_contract`; no usable contract address was produced. The contract was
-then corrected by removing a non-pinned comment above the required dependency
-header and deployed successfully using the transaction recorded above.
-
-Transaction explorer links use:
-`https://explorer-studio.genlayer.com/tx/<transaction-hash>`.
+finalized with `invalid_contract` and is retained only as a failed attempt.

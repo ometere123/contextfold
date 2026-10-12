@@ -1,15 +1,44 @@
-# ContextFold — Intelligent Contract submission (draft, not yet live verified)
+# ContextFold — standalone GenLayer Intelligent Contract
 
-**Name:** ContextFold
+ContextFold is a bounded, owner-isolated semantic-memory compression
+primitive. It freezes an active frontier, requires a total source-to-claim
+mapping, preserves normative kinds, and requires independent validator
+re-execution before a shorter capsule becomes current.
 
-**One-liner:** Reusable GenLayer semantic-memory compaction: independently check that shortened memory preserves every active duty, exception and unresolved condition before it becomes canonical.
+## Current verified deployment
 
-**Category:** Standalone Intelligent Contracts. No frontend or application flow.
+- Network: StudioNet, chain `61999`
+- RPC: `https://studio.genlayer.com/api`
+- Local CLI: repository-local `genlayer@0.39.1`
+- Contract: `0xae293Cb699FF2c09E1D6281325157647900e5601`
+- Deployment transaction: `0x7b2edc209bd0553e0b99381334ee99f6360fef58f9dd9f4932809765cf398677`
+- Deployment status: `FINALIZED / MAJORITY_AGREE / SUCCESS`
+- Source parity: exact after newline normalization; see [deployment evidence](docs/DEPLOYMENT.md)
 
-**Problem:** Language-model summarization can silently lose commitments, prohibitions, exceptions or uncertainty. ContextFold freezes the active record frontier, requires exhaustive source-to-claim mapping, and invokes substantive independent semantic validator checks before a shortened memory capsule may replace the active context. Source history remains available and each certificate is version-pinned.
+## Live proof
 
-**GenLayer necessity:** Natural-language conservation cannot be established through text equality or shape validators. A centralized summarizer would have unilateral power to erase obligations. ContextFold uses independently executed validator comparisons over identical frozen input, with all-normative-dimension PASS required for acceptance. Deterministic state controls source completeness, group kind, version races, stale invalidation and certificate consumption.
+The current deployment has live finalized evidence for:
 
-**Where reuse matters:** Long-lived autonomous agent memory; DAO deliberation records; multi-stage contract negotiation; policy history; maintenance handovers; ongoing service obligations. A consumer pins an exact `is_current(space_id, fold_id, certificate_hash)` result before trusting a compact context.
+- accepted obligation-plus-exception compression with `current=true`;
+- rejected omission, negation, deadline, invented-permission, exception-loss,
+  and unresolved-uncertainty candidates;
+- competing-fold stale invalidation;
+- accepted second-generation re-fold with parent certificate lineage;
+- downstream `is_current()` enforcement, including safe zero-fold rejection.
 
-**Limitations:** This is not mathematical proof of arbitrary linguistic equivalence; shared model failure is possible. Storage retains full history, only active context is compressed. The original inputs may be false or malicious. No on-chain deployment or GenVM test result should be claimed until `docs/DEPLOYMENT.md` is populated with genuine evidence.
+## Engineering evidence
+
+- Unit tests: `15 passed`
+- Direct Mode tests: `16 passed`
+- GenVM AST lint: `3/3`
+- GitHub CI: use the run attached to the final commit.
+- The pinned Windows environment did not complete extended local
+  `genvm-lint validate/check/schema`; this limitation is not presented as a
+  semantic validation pass.
+
+## Limits
+
+Natural-language equivalence remains probabilistic: validators can share model
+mistakes. ContextFold does not prove that source records are true or complete,
+does not access outside web sources, and retains historical storage while
+compressing only the active semantic frontier. See [THREAT_MODEL.md](docs/THREAT_MODEL.md).
